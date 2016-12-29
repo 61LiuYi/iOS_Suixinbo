@@ -28,6 +28,7 @@
 
 // type暂只支持HLS, RTMP
 - (NSString *)getPushUrl:(AVEncodeType)type;
+- (NSString *)getAllPushUrls;
 
 @end
 

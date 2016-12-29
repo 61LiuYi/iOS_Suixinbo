@@ -62,9 +62,14 @@
 // 外部通过此方法更新_isExiting的值
 - (void)willExitLiving;
 
+// 1.8.2之前的调用方式
 // 切换直播间（当前必须正在直播间才可以切换）
 // 当前用户若为主播，不允许切换
 - (BOOL)switchToLive:(id<AVRoomAble>)room;
+
+// 1.8.3 SDK新增接口补齐
+// 当前用户若为主播，不允许切换
+- (BOOL)switchToRoom:(id<AVRoomAble>)room;
 
 @end
 
@@ -142,4 +147,5 @@
 
 - (void)tipMessage:(NSString *)msg delay:(CGFloat)seconds completion:(void (^)())completion;
 
+- (void)releaseEngine;
 @end

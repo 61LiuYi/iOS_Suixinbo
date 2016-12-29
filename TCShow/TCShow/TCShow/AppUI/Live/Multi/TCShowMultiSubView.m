@@ -76,7 +76,7 @@
 
 - (void)configOwnViews
 {
-    [_receiverHeadIcon sd_setImageWithURL:[NSURL URLWithString:[_interactUser imUserIconUrl]] placeholderImage:kDefaultUserIcon];
+    [_receiverHeadIcon sd_setImageWithURL:[NSURL URLWithString:[_interactUser imUserIconUrl]] placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
 }
 
 - (void)onStartInvite:(NSInteger)sec

@@ -166,7 +166,6 @@
     GridPreview *preview = [[GridPreview alloc] initWithFrame:self.view.bounds];
     [self.view addSubview:preview];
     _livePreview = preview;
-    _multiManager.preview = preview;
     [_livePreview addRenderFor:[_roomInfo liveHost]];
 }
 

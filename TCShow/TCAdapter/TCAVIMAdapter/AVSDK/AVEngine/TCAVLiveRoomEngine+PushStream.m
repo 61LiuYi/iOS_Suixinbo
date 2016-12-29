@@ -53,6 +53,20 @@
     return nil;
 }
 
+- (NSString *)getAllPushUrls
+{
+    NSMutableString *str = [NSMutableString string];
+    if (self.pushResp.urls.count)
+    {
+        for (AVLiveUrl *url in self.pushResp.urls)
+        {
+            [str appendString:url.playUrl];
+            [str appendString:@"\n"];
+        }
+    }
+    
+    return str;
+}
 
 - (NSString *)getHLSPushUrl
 {

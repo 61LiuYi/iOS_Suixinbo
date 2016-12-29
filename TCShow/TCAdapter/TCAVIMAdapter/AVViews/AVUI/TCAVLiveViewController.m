@@ -175,9 +175,9 @@
 - (instancetype)initWith:(id<AVRoomAble>)info user:(id<IMHostAble>)user
 {
     [TCAVLiveViewController checkInitParam:info user:user];
+    _enableIM = YES;
     if (self = [super initWith:info user:user])
     {
-        _enableIM = YES;
     }
     return self;
 }
@@ -222,6 +222,19 @@
         [_msgHandler exitLiveChatRoom:nil fail:nil];
     }
     BOOL succ = [super switchToLive:room];
+    if (succ)
+    {
+        // 界面停止渲染
+        [_livePreview stopAndRemoveAllRender];
+        
+    }
+    return succ;
+}
+
+// 切换直播间
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    BOOL succ = [super switchToRoom:room];
     if (succ)
     {
         // 界面停止渲染
@@ -322,6 +335,7 @@
 {
     if (!succ)
     {
+        DebugLog(@"请求[%@]画面超时", [user imUserId]);
         UIAlertView *aler = [UIAlertView bk_showAlertViewWithTitle:nil message:@"请求主播画面超时，主播可能已经离开" cancelButtonTitle:@"退出" otherButtonTitles:@[@"继续等待"] handler:^(UIAlertView *alertView, NSInteger buttonIndex) {
             if (buttonIndex == 0)
             {
@@ -343,7 +357,7 @@
 //    [self tipMessage:@"请求画面超时" delay:1 completion:^{
 //        [self exitLive];
 //    }];
-    
+    DebugLog(@"请求[%@]画面超时", [[[engine getRoomInfo] liveHost] imUserId]);
     UIAlertView *aler = [UIAlertView bk_showAlertViewWithTitle:nil message:@"请求主播画面超时，主播可能已经离开" cancelButtonTitle:@"退出" otherButtonTitles:@[@"继续等待"] handler:^(UIAlertView *alertView, NSInteger buttonIndex) {
         if (buttonIndex == 0)
         {
@@ -644,5 +658,16 @@
         }
     }
 }
+
+- (void)releaseEngine
+{
+    [_livePreview stopPreview];
+    if (_msgHandler && !_isExiting)
+    {
+        [_msgHandler exitLiveChatRoom:nil fail:nil];
+    }
+    [super releaseEngine];
+}
+
 
 @end

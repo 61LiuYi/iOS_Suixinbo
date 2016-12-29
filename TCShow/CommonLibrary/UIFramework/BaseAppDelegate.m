@@ -17,7 +17,7 @@
 
 + (instancetype)sharedAppDelegate
 {
-    return [UIApplication sharedApplication].delegate;
+    return (BaseAppDelegate *)[UIApplication sharedApplication].delegate;
 }
 
 - (void)redirectConsoleLog:(NSString *)logFile

@@ -151,9 +151,14 @@
         // 不处理Speaker
         // [_roomEngine asyncEnableSpeaker:NO completion:nil];
         
-        [self changeToNormalGuestAuthAndRole:^(id selfPtr, BOOL isFinished) {
+        [self changeToGuest:^(id selfPtr, BOOL isFinished) {
             DebugLog(@"修改Auth以及Role到普通观众%@", isFinished ? @"成功" : @"失败");
         }];
+
+        
+//        [self changeToNormalGuestAuthAndRole:^(id selfPtr, BOOL isFinished) {
+//            DebugLog(@"修改Auth以及Role到普通观众%@", isFinished ? @"成功" : @"失败");
+//        }];
     }
     
     

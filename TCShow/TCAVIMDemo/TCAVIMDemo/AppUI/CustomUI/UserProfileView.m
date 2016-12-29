@@ -143,7 +143,7 @@
     {
         _showUser = profile;
         
-        [_icon sd_setImageWithURL:[NSURL URLWithString:[_showUser imUserIconUrl]] placeholderImage:kDefaultUserIcon];
+        [_icon sd_setImageWithURL:[NSURL URLWithString:[_showUser imUserIconUrl]] placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
         _name.text = [_showUser imUserName];
         _signature.text = [[NSString alloc] initWithData:_showUser.selfSignature encoding:NSUTF8StringEncoding];
         
@@ -153,7 +153,7 @@
 
 - (void)showUser:(id<IMUserAble>)user
 {
-    [_icon sd_setImageWithURL:[NSURL URLWithString:[user imUserIconUrl]] placeholderImage:kDefaultUserIcon];
+    [_icon sd_setImageWithURL:[NSURL URLWithString:[user imUserIconUrl]] placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
     _name.text = [user imUserName];
     
 

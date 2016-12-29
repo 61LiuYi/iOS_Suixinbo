@@ -10,6 +10,11 @@
 
 @implementation TCShowLiveUIViewController
 
+- (void)releaseUIResource
+{
+    [_liveView.topView pauseLive];
+}
+
 #if kSupportSwitchRoom
 - (void)viewDidLoad
 {
@@ -110,7 +115,11 @@
                 }
             }
             
-            BOOL succ = [_liveController switchToLive:arry[idx]];
+            // 183之前使用
+            // BOOL succ = [_liveController switchToLive:arry[idx]];
+            // 183之后使用
+            BOOL succ = [_liveController switchToRoom:arry[idx]];
+            
             if (!succ)
             {
                 DebugLog(@"切换房间不成功");
@@ -119,7 +128,11 @@
         }
         else
         {
-            BOOL succ = [_liveController switchToLive:arry[0]];
+            
+            // 183之前使用
+            // BOOL succ = [_liveController switchToLive:arry[0]];
+            // 183之后使用
+            BOOL succ = [_liveController switchToRoom:arry[0]];
             if (!succ)
             {
                 DebugLog(@"切换房间不成功");
@@ -500,7 +513,7 @@
 
 - (void)showPush:(AVEncodeType)type succ:(BOOL)succ request:(TCAVLiveRoomPushRequest *)req
 {
-    NSString *pushUrl = [req getPushUrl:type];
+    NSString *pushUrl = [req getAllPushUrls];
     if (succ && pushUrl.length > 0)
     {
         UIAlertView *alert = [UIAlertView bk_showAlertViewWithTitle:@"推流地址" message:pushUrl cancelButtonTitle:@"拷至粘切板" otherButtonTitles:nil handler:^(UIAlertView *alertView, NSInteger buttonIndex) {
@@ -774,6 +787,17 @@
     return succ;
 }
 
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    BOOL succ = [super switchToRoom:room];
+    if (succ)
+    {
+        TCShowLiveUIViewController *vc = (TCShowLiveUIViewController *)_liveView;
+        [vc switchToLiveRoom:room];
+    }
+    return succ;
+}
+
 - (void)onAVEngine:(TCAVBaseRoomEngine *)engine onStartPush:(BOOL)succ pushRequest:(TCAVLiveRoomPushRequest *)req
 {
     TCShowLiveUIViewController *uivc = (TCShowLiveUIViewController *)_liveView;
@@ -799,6 +823,12 @@
     [super onEnterLiveSucc:succ tipInfo:tip];
 }
 
+- (void)releaseEngine
+{
+    TCShowLiveUIViewController *lv = (TCShowLiveUIViewController *)_liveView;
+    [lv releaseUIResource];
+    [super releaseEngine];
+}
 @end
 
 

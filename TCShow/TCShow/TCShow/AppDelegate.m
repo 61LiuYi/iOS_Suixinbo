@@ -69,9 +69,13 @@
                 if (buttonIndex == 1)
                 {
                     _resotreLiveParam = item;
-                    
+#if kSupportMultiLive
                     TCShowMultiLiveViewController *vc = [[TCShowMultiLiveViewController alloc] initWith:item user:[IMAPlatform sharedInstance].host];
                     [[AppDelegate sharedAppDelegate] pushViewController:vc];
+#else
+                    TCShowLiveViewController *vc = [[TCShowLiveViewController alloc] initWith:item user:[IMAPlatform sharedInstance].host];
+                    [[AppDelegate sharedAppDelegate] pushViewController:vc];
+#endif
                 }
             }];
             [alert show];

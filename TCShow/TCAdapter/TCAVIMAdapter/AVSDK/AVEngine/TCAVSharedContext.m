@@ -50,32 +50,34 @@ static TCAVSharedContext *kSharedConext = nil;
     
 }
 
-+ (void)configWithStartedContext:(id<IMHostAble>)host completion:(CommonVoidBlock)block
++ (void)configWithStartedContext:(id<IMHostAble>)host completion:(CommonFinishBlock)block
 {
     if ([TCAVSharedContext sharedInstance].sharedContext == nil)
     {
-        QAVContextConfig *config = [[QAVContextConfig alloc] init];
+        QAVContextStartParam *config = [[QAVContextStartParam alloc] init];
         
         NSString *appid = [host imSDKAppId];
         
-        config.sdk_app_id = appid;
-        config.app_id_at3rd = appid;
+        config.sdkAppId = [appid intValue];
+        config.appidAt3rd = appid;
         config.identifier = [host imUserId];
-        config.account_type = [host imSDKAccountType];
-        
+        config.accountType = [host imSDKAccountType];
+        config.engineCtrlType = QAVSpearEngineCtrlTypeCloud;
         QAVContext *context = [QAVContext CreateContext];
-        [context setSpearEngineMode:QAV_SPEAR_ENGINE_MODE_WEBCLOUD];
         
-        [context startContextwithConfig:config andblock:^(QAVResult result) {
+        [context startWithParam:config completion:^(int result, NSString *errorInfo) {
             
-            [TCAVSharedContext sharedInstance].sharedContext = context;
+            DebugLog(@"共享的QAVContext = %p result = %d error = %@", context, (int)result, errorInfo);
+            if (result == QAV_OK)
+            {
+                [TCAVSharedContext sharedInstance].sharedContext = context;
+            }
+            
             if (block)
             {
-                block();
+                block(result == QAV_OK);
             }
-            DebugLog(@"共享的QAVContext = %p result = %d", context, (int)result);
         }];
-        
     }
 }
 
@@ -83,7 +85,11 @@ static TCAVSharedContext *kSharedConext = nil;
 {
     if ([TCAVSharedContext sharedInstance].sharedContext)
     {
-        [[TCAVSharedContext sharedInstance].sharedContext stopContext];
+        QAVResult res = [[TCAVSharedContext sharedInstance].sharedContext stop];
+        if (res != QAV_OK)
+        {
+            DebugLog(@"stopContext失败 result = %d", (int)res);
+        }
         [[TCAVSharedContext sharedInstance].sharedContext destroy];
         [TCAVSharedContext sharedInstance].sharedContext = nil;
         if (block)

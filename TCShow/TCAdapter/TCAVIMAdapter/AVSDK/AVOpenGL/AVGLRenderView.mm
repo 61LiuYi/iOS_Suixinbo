@@ -113,7 +113,7 @@ Vertex loadintVertex[4] =
         _needDisplayLoading = YES;
         _isDisplayBlocked = NO;
         _boundWidth = 0;
-
+        
         _glTextureRotateAngle = 0;
         _yRotateAngle = 180;
         _xRotateAngle = 0;
@@ -132,7 +132,7 @@ Vertex loadintVertex[4] =
         _strideBuf = NULL;
         //_stirdeW = 0;
         _bufLen = 0;
-
+        
     }
     return self;
 }
@@ -296,7 +296,7 @@ Vertex loadintVertex[4] =
     
     if (dstWidth < dstHeight)
         return [self updateTexCoord2];
-        //myswap(&dstHeight, &dstWidth);
+    //myswap(&dstHeight, &dstWidth);
     if (viewWidth ==0 || viewHeight == 0 || dstWidth == 0 || dstHeight == 0) {
         return;
     }
@@ -413,7 +413,7 @@ Vertex loadintVertex[4] =
     }
     else
     {
-//        stride_y += (1 - (float)viewWidth/viewHeight * _image.width/_image.height)/2;
+        //        stride_y += (1 - (float)viewWidth/viewHeight * _image.width/_image.height)/2;
     }
     _vertexs[3].TexCoord[0] = stride_x;
     _vertexs[3].TexCoord[1] = stride_y;
@@ -444,7 +444,7 @@ Vertex loadintVertex[4] =
     
     if (dstWidth < dstHeight){
         return [self updateVertexs2];
-       // myswap(&dstWidth, &dstHeight);
+        // myswap(&dstWidth, &dstHeight);
     }
     
     if (_textueDisplayType == Texture_Display_Type_Video_Data)
@@ -493,11 +493,11 @@ Vertex loadintVertex[4] =
                 {
                     //如果是浮窗,宽高变形了
                     vertX = - (float)PREVIEW_LAYER_W/PREVIEW_LAYER_H*dstWidth/dstHeight;
-
+                    
                 }
                 else
                 {
-
+                    
                     if (frameW > GROUP_SMALL_VIEW_WIDTH)
                     {
                         vertX = - (float)frameW/frameH*dstWidth/dstHeight;
@@ -601,7 +601,7 @@ Vertex loadintVertex[4] =
                         //PC端 720P的情况下，应该要X轴做裁剪
                         if (self.isFloat)
                         {
-                             //暂时不处理float的
+                            //暂时不处理float的
                             //stride_x += (1 - (float)PREVIEW_LAYER_H/PREVIEW_LAYER_W*_image.height/_image.width)/2;
                         }
                         else
@@ -630,22 +630,22 @@ Vertex loadintVertex[4] =
                         }
                     }
                 }
-//                else
-//                {
-//                    //如果不允许裁剪，说明是拨片儿
-//                    if (viewWidth == GROUP_SMALL_VIEW_WIDTH)
-//                    {
-//                        //多人的小画面，要裁剪成正方形
-//                        if (viewWidth/viewHeight > dstHeight/dstWidth)
-//                        {
-//                            stride_x += (1 - (float)viewHeight/viewWidth * dstHeight/dstWidth)/2;
-//                        }
-//                        else
-//                        {
-//                            stride_y += (1 - (float)viewWidth/viewHeight * dstWidth/dstHeight)/2;
-//                        }
-//                    }
-//                }
+                //                else
+                //                {
+                //                    //如果不允许裁剪，说明是拨片儿
+                //                    if (viewWidth == GROUP_SMALL_VIEW_WIDTH)
+                //                    {
+                //                        //多人的小画面，要裁剪成正方形
+                //                        if (viewWidth/viewHeight > dstHeight/dstWidth)
+                //                        {
+                //                            stride_x += (1 - (float)viewHeight/viewWidth * dstHeight/dstWidth)/2;
+                //                        }
+                //                        else
+                //                        {
+                //                            stride_y += (1 - (float)viewWidth/viewHeight * dstWidth/dstHeight)/2;
+                //                        }
+                //                    }
+                //                }
             }
         }
     }
@@ -665,7 +665,7 @@ Vertex loadintVertex[4] =
     
     _vertexs[0].TexCoord[0] = 1-stride_x;
     _vertexs[0].TexCoord[1] = stride_y;
-
+    
     
     
     
@@ -675,7 +675,7 @@ Vertex loadintVertex[4] =
             _vertexs[n].TexCoord[0] = myMinf(_vertexs[n].TexCoord[0], _StridedTexCoord);
         }
     }
-
+    
 }
 
 //更新纹理显示定点，和画面再哪里显示相关
@@ -738,7 +738,7 @@ Vertex loadintVertex[4] =
                         vertY = - (float)frameW / frameH * dstHeight /dstWidth;
                     }
                 }
-  
+                
             }
         }
         else
@@ -813,7 +813,7 @@ Vertex loadintVertex[4] =
     float radians = degrees * 3.14159f / 180.0f;
     float s = sin(radians);
     float c = cos(radians);
-
+    
     switch (axis) {
         case Rotation_Axis_X:
         {
@@ -863,7 +863,7 @@ Vertex loadintVertex[4] =
                     0,1//
                 };
                 glUniformMatrix2fv([AVGLShareInstance shareInstance].textureRotateUinform, 1, 0, &textureRotation[0]);
-
+                
                 glUniformMatrix4fv([AVGLShareInstance shareInstance].rotateZMatrixUniform , 1, 0, &zRotation[0]);
             }
             else
@@ -921,7 +921,7 @@ Vertex loadintVertex[4] =
     
     [self applyRotationWithDegree:_image.angle withAxis:Rotation_Axis_Z withType:Rotation_Type_Vertex];//每个画面的坐标都不同，所以这里也要各自都刷一遍
     
-
+    
     //
     // 1
     glBindBuffer(GL_ARRAY_BUFFER, [AVGLShareInstance shareInstance].vetexBuffer);
@@ -940,11 +940,11 @@ Vertex loadintVertex[4] =
     glUniform1i([AVGLShareInstance shareInstance].vertexDrawTypeUniform, 0);
     
     glUniformMatrix4fv([AVGLShareInstance shareInstance].rotateYMatrixUniform , 1, 0, &_yRotateMatrix[0]);
-
+    
     glUniform1f([AVGLShareInstance shareInstance].boundsUniform, _boundWidth/_frame.size.width);
-
+    
     [self applyRotationWithDegree:_xRotateAngle withAxis:Rotation_Axis_X withType:Rotation_Type_Vertex];
-
+    
     if (_textueDisplayType == Texture_Display_Type_Video_Data )
     {
         glUniform1i([AVGLShareInstance shareInstance].displayType, 0);
@@ -960,7 +960,7 @@ Vertex loadintVertex[4] =
             glUniform1i([AVGLShareInstance shareInstance].yuvTypeUniform, 1);
             planarCount = 2;
         }
-
+        
         for (int i=0; i<planarCount; i++)
         {
             glActiveTexture(GL_TEXTURE0+i);
@@ -986,10 +986,14 @@ Vertex loadintVertex[4] =
 - (void) drawBackground
 {
     return;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    
+    
     [self updateVBOWithDrawType:Display_Type_BackGround];
     
     [self applyRotationWithDegree:_image.angle withAxis:Rotation_Axis_Z withType:Rotation_Type_Vertex];//每个画面的坐标都不同，所以这里也要各自都刷一遍
-
+    
     glBindBuffer(GL_ARRAY_BUFFER, [AVGLShareInstance shareInstance].vetexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, [AVGLShareInstance shareInstance].indexBuffer);
     
@@ -1003,13 +1007,14 @@ Vertex loadintVertex[4] =
     
     glUniform1i([AVGLShareInstance shareInstance].drawTypeUniform, 1);
     glUniform1i([AVGLShareInstance shareInstance].vertexDrawTypeUniform, 1);
-
+    
     glUniform1f([AVGLShareInstance shareInstance].boundsUniform, _boundWidth/_frame.size.width);
-
+    
     glDrawElements(GL_TRIANGLES, 6,GL_UNSIGNED_BYTE, 0);
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+#pragma clang diagnostic pop
     
 }
 
@@ -1022,7 +1027,7 @@ Vertex loadintVertex[4] =
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, [AVGLShareInstance shareInstance].indexBuffer);
     
     [self applyRotationWithDegree:[self getAutoRotateAngle] withAxis:Rotation_Axis_Z withType:Rotation_Type_Texture];//每个画面的坐标都不同，所以这里也要各自都刷一遍
-
+    
     glVertexAttribPointer([AVGLShareInstance shareInstance].positionAttributeLocation, 3, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), (void*)offsetof(Vertex, Position));
     glEnableVertexAttribArray([AVGLShareInstance shareInstance].positionAttributeLocation);
@@ -1033,20 +1038,20 @@ Vertex loadintVertex[4] =
     
     glUniform1i([AVGLShareInstance shareInstance].drawTypeUniform, 0);
     glUniform1i([AVGLShareInstance shareInstance].vertexDrawTypeUniform, 1);
-
+    
     glUniform1i([AVGLShareInstance shareInstance].displayType, 2);
     
     glUniformMatrix2fv([AVGLShareInstance shareInstance].textureScaleUniform, 1, 0, &_textureScaleMatrix[0]);
     glUniformMatrix2fv([AVGLShareInstance shareInstance].textureBoundsUniform , 1, 0, &_textureBoundMatrix[0]);
-
+    
     glActiveTexture(GL_TEXTURE0+3);
     glBindTexture(GL_TEXTURE_2D, _planarTextureHandles[3]);
     glUniform1i([AVGLShareInstance shareInstance].textureUniforms[3], 3);
-
+    
     glEnable( GL_BLEND );   // 启用混合
     glBlendFunc( GL_SRC_ALPHA , GL_ONE_MINUS_SRC_ALPHA ); // 是最常使用的
     
-
+    
     glDrawElements(GL_TRIANGLES, 6,GL_UNSIGNED_BYTE, 0);
     
     glDisable(GL_BLEND);
@@ -1066,9 +1071,9 @@ Vertex loadintVertex[4] =
 }
 
 - (void) textureNV12: (Byte*)imageData
-          widthType: (int) width
-         heightType: (int) height
-              index: (int) index
+           widthType: (int) width
+          heightType: (int) height
+               index: (int) index
 {
     glBindTexture(GL_TEXTURE_2D, _planarTextureHandles[index]);
     
@@ -1149,7 +1154,7 @@ Vertex loadintVertex[4] =
         default:
             break;
     }
-
+    
     BOOL isNeedUpdateVertex = NO;
     if (_image != nil)
     {
@@ -1179,7 +1184,7 @@ Vertex loadintVertex[4] =
             [_image release];
         }
         _image = [image retain];
-
+        
         _StridedTexCoord = 1.0f;
         
         Byte * yPlane =  _image.data;
@@ -1266,7 +1271,7 @@ Vertex loadintVertex[4] =
     uOut = pU;
     vOut = pV;
     
-
+    
 }
 
 //动画接口
@@ -1275,10 +1280,10 @@ Vertex loadintVertex[4] =
     CGFloat stepLength = [AVGLRenderView getStepLengthAtIndex:index withAnimationType:animationType];
     CGFloat coefficient = 1.0;
     
-//    if (_currentAnimationStep < GL_ANIMATION_STEP_COUNT)
-//    {
-//         coefficient = GL_ANIMATION_STEP_COUNT / (GL_ANIMATION_STEP_COUNT - _currentAnimationStep);
-//    }
+    //    if (_currentAnimationStep < GL_ANIMATION_STEP_COUNT)
+    //    {
+    //         coefficient = GL_ANIMATION_STEP_COUNT / (GL_ANIMATION_STEP_COUNT - _currentAnimationStep);
+    //    }
     _currentAnimationStep = index;
     switch (animationType)
     {
@@ -1400,10 +1405,10 @@ Vertex loadintVertex[4] =
             nickRect = CGRectMake(0, 0 , viewRect.size.width, viewRect.size.height);
             
             _nickView.nickLabel.textAlignment= NSTextAlignmentLeft;
-
+            
         }
             break;
-
+            
         default:
             break;
     }
@@ -1413,7 +1418,7 @@ Vertex loadintVertex[4] =
     [_nickView setFrame:viewRect];
     
     [_nickView.backGroundView setFrame:_nickView.bounds];
-
+    
 }
 //动画接口
 - (void)animationEndWithAnimationType:(ENAnimationType)animationType
@@ -1537,7 +1542,7 @@ Vertex loadintVertex[4] =
     NSLog(@"animationID:%@",animationID);
     g_glAnimationNeedCommitFlag = NO;
     g_glAnimationStatus = Animation_State_Prepare;
-
+    
 }
 
 + (void)setAnimationDidStopSelector:(SEL)selector

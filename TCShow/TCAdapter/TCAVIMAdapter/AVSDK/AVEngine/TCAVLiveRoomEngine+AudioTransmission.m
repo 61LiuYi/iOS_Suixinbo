@@ -164,6 +164,7 @@ static NSString *const kTCAVLiveRoomEngineSpeakerAudioOffset = @"kTCAVLiveRoomEn
     if (_avContext)
     {
         [_avContext.audioCtrl unregisterAudioDataCallbackAll];
+        [_avContext.audioCtrl setAudioDataEventDelegate:nil];
     }
 }
 

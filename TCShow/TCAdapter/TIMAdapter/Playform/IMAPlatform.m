@@ -103,7 +103,7 @@ static Class kHostClass = Nil;
     [manager initFriendshipSetting:setting];
     [manager enableFriendshipProxy];
     
-    
+    [manager enableGroupAssistant];
 }
 
 
@@ -162,7 +162,7 @@ static Class kHostClass = Nil;
     return _host.loginParm.config;
 }
 
-- (void)configHost:(TIMLoginParam *)param completion:(CommonVoidBlock)block
+- (void)configHost:(TIMLoginParam *)param completion:(CommonFinishBlock)block
 {
     if (!_host)
     {

@@ -37,6 +37,10 @@
 }
 
 
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    return !([_roomEngine isHostLive] || [(TCAVMultiLiveRoomEngine *)_roomEngine hasEnabelCamera]);
+}
 
 
 - (void)prepareIMMsgHandler
@@ -134,8 +138,6 @@
     [self.view addSubview:preview];
     _livePreview = preview;
     [_livePreview registLeaveView:[TCAVMultiLeaveView class]];
-    
-    _multiManager.preview = preview;
     [_livePreview addRenderFor:[_roomInfo liveHost]];
 }
 
@@ -143,6 +145,7 @@
 {
     _multiManager = [[TCAVIMMIManager alloc] init];
     _multiManager.multiDelegate = self;
+    _multiManager.preview = (TCAVMultiLivePreview *)_livePreview;
 }
 
 - (void)requestHostViewOnEnterLiveSucc
@@ -150,6 +153,24 @@
     id<AVMultiUserAble> host = (id<AVMultiUserAble>)[_roomInfo liveHost];
     _multiManager.roomEngine = (TCAVMultiLiveRoomEngine *)_roomEngine;
     [_multiManager registAsMainUser:host isHost:_isHost];
+}
+
+- (void)onAVEngine:(TCAVBaseRoomEngine *)engine switchRoom:(id<AVRoomAble>)room succ:(BOOL)succ tipInfo:(NSString *)tip
+{
+    if (!succ)
+    {
+        _switchingToRoom = nil;
+    }
+    
+    if (succ)
+    {    
+        [_livePreview stopAndRemoveAllRender];
+        [_livePreview startPreview];
+    }
+    DebugLog(@"切换房间%@", succ ? @"成功" : @"失败");
+    [self onEnterLiveSucc:succ tipInfo:tip];
+    _switchingToRoom = nil;
+    
 }
 
 - (void)onAVEngine:(TCAVBaseRoomEngine *)engine videoFrame:(QAVVideoFrame *)frame
@@ -315,6 +336,19 @@
 - (BOOL)switchToLive:(id<AVRoomAble>)room
 {
     BOOL succ = [super switchToLive:room];
+    if (succ)
+    {
+        // 界面停止渲染
+        [_multiManager clearAllOnSwitchRoom];
+        
+    }
+    return succ;
+}
+
+// 切换直播间
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    BOOL succ = [super switchToRoom:room];
     if (succ)
     {
         // 界面停止渲染

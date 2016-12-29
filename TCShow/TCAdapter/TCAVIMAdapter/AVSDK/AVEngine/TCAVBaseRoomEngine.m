@@ -121,6 +121,49 @@
     
 }
 
+// 1.8.3 新的切换房间接口
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    if (!_isRoomAlive)
+    {
+        DebugLog(@"上一次的房间还未进入成功，不能进行切换房间");
+        return NO;
+    }
+    
+    if (room == nil)
+    {
+        DebugLog(@"要切换的房间为空");
+        return NO;
+    }
+    
+    if ([room liveAVRoomId] == [_roomInfo liveAVRoomId])
+    {
+        DebugLog(@"要切换的房间与当前的房间一致，不用切换");
+        return NO;
+    }
+    
+    
+    _switchingToRoom = room;
+    
+    _isAtForeground = YES;
+    _hasRecvSemiAutoCamera = NO;
+    [self stopFirstFrameTimer];
+    _hasStatisticFirstFrame = NO;
+    
+    
+#if kSupportTimeStatistics
+    // 用于进出房间时间统计
+    _logStartDate = [NSDate date];
+    _hasShowLocalFirstFrame = NO;
+    _hasSemiAutoCameraVideo = NO;
+#endif
+    _hasShowFirstRemoteFrame = NO;
+    
+    DebugLog(@"开始从房间［%@, %d］切换房间［%@, %d］", [_roomInfo liveTitle], [_roomInfo liveAVRoomId], [_switchingToRoom liveTitle], [_switchingToRoom liveAVRoomId]);
+    [_avContext switchRoom:[room liveAVRoomId]];
+    return YES;
+}
+
 - (void)onExitRoomCompleteToSwitchToLive
 {
     if (_switchingToRoom)
@@ -198,7 +241,15 @@
     QAVVideoCtrl *ctrl = [_avContext videoCtrl];
     [ctrl setLocalVideoDelegate:nil];
     [ctrl setRemoteVideoDelegate:nil];
-    [_avContext exitRoom];
+    
+    if ([NSThread isMainThread])
+    {
+        [_avContext exitRoom];
+    }
+    else
+    {
+        [_avContext performSelectorOnMainThread:@selector(exitRoom) withObject:nil waitUntilDone:NO];
+    }
 }
 
 - (BOOL)isRoomRunning
@@ -229,21 +280,21 @@
     if ([[IMAPlatform sharedInstance] isConnected])
     {
         // 检查当前网络
-        QAVResult result = [_avContext enterRoom:param delegate:self];
+        [_avContext enterRoom:param delegate:self];
         
-        if(QAV_OK != result)
-        {
-            TCAVIMLog(@"进入AVRoom出错:%d", (int)result);
-            __weak TCAVBaseRoomEngine *ws = self;
-#if kIsUseAVSDKAsLiveScene
-            [ws onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterRoom_Fail_Tip)];
-#else
-            [_avContext stopContext];
-//            [_avContext stopContext:^(QAVResult result) {
-            [ws onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterRoom_Fail_Tip)];
-//            }];
-#endif
-        }
+//        if(QAV_OK != result)
+//        {
+//            TCAVIMLog(@"进入AVRoom出错:%d", (int)result);
+//            __weak TCAVBaseRoomEngine *ws = self;
+//#if kIsUseAVSDKAsLiveScene
+//            [ws onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterRoom_Fail_Tip)];
+//#else
+//            [_avContext stopContext];
+////            [_avContext stopContext:^(QAVResult result) {
+//            [ws onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterRoom_Fail_Tip)];
+////            }];
+//#endif
+//        }
     }
     else
     {
@@ -265,7 +316,7 @@
 
 #pragma AVRoomDelegate method
 
--(void)OnEnterRoomComplete:(int)result
+-(void)OnEnterRoomComplete:(int)result WithErrinfo:(NSString *)error_info
 {
     // 进入AV房间
     if (!_avContext)
@@ -283,24 +334,75 @@
     }
     else
     {
-        TCAVIMLog(@"切换房间失败: %d", result);
         _switchingToRoom = nil;
         
 #if kIsUseAVSDKAsLiveScene
-        [self onContextCloseComplete:QAV_OK];
+        TCAVIMLog(@"切换房间失败: %d errorInfo = %@", result, error_info);
+        [self onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterAVRoom_Fail_Tip)];
 #else
-        TCAVIMLog(@"进入AV房间失败: %d, 开始StopContext", result);
-        __weak TCAVBaseRoomEngine *ws = self;
+        TCAVIMLog(@"进入AV房间失败: %d errorInfo = %@, 开始StopContext", result, error_info);
         [_avContext stopContext];
-//        [_avContext stopContext:^(QAVResult result) {
-            [ws onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterAVRoom_Fail_Tip)];
-//        }];
+        [self onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterAVRoom_Fail_Tip)];
+
 #endif
         
         
     }
 }
 
+
+- (void)OnSwitchRoomComplete:(int)result WithErrinfo:(NSString *)error_info
+{
+    // 进入AV房间
+    if (!_avContext)
+    {
+        DebugLog(@"avContext已销毁");
+        return;
+    }
+    
+//    如果返回值是2001代表仍然停留在原房间，不需要做啥操作，
+//    如果是2002代表新房间没有进入成功，旧房间又退出了，这个结果和退房是一样的；
+//    如果是ok，代表成功进入新房间，需要把旧房间里面保存的成员信息、视频信息等先清除掉
+    TCAVIMLog(@"切换房间失败: %d errorInfo = %@", result, error_info);
+    if(QAV_OK == result)
+    {
+        TCAVIMLog(@"切换房间成功");
+        _roomInfo = _switchingToRoom;
+        [self onEnterAVRoomSucc];
+        
+    }
+    else if (QAV_OK == QAV_ERR_NOT_TRY_NEW_ROOM)
+    {
+        _switchingToRoom = nil;
+        _isRoomAlive = YES;
+        if (_roomInfo)
+        {
+            if ([_delegate respondsToSelector:@selector(onAVEngine:switchRoom:succ:tipInfo:)])
+            {
+                [_delegate onAVEngine:self switchRoom:_roomInfo succ:NO tipInfo:TAVLocalizedError(ETCAVBaseRoomEngine_SwitchRoom_Succ_Tip)];
+            }
+        }
+        else
+        {
+            [_delegate onAVEngine:self enterRoom:_roomInfo succ:YES tipInfo:@"切换房间失败"];
+        }
+    }
+    else
+    {
+        _switchingToRoom = nil;
+        
+#if kIsUseAVSDKAsLiveScene
+        TCAVIMLog(@"切换房间失败: %d errorInfo = %@", result, error_info);
+        [self onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterAVRoom_Fail_Tip)];
+#else
+        
+        [_avContext stopContext];
+        [self onContextCloseComplete:TAVLocalizedError(ETCAVBaseRoomEngine_EnterAVRoom_Fail_Tip)];
+        
+#endif
+    }
+    
+}
 
 -(void)OnExitRoomComplete
 {
@@ -330,13 +432,15 @@
     
 }
 
-- (void)OnRoomDisconnect:(int)reason
+- (void)OnRoomDisconnect:(int)reason WithErrinfo:(NSString *)error_info
 {
+    DebugLog(@"异常退出: %d, errorIfon = %@", reason, error_info);
     if (!_avContext)
     {
         DebugLog(@"avContext已销毁");
         return;
     }
+    
     TCAVLog(([NSString stringWithFormat:@" *** clogs.%@.sdkDisconnect|%@|sdkDisconnect room|SUCCEED|result %d", [self isHostLive] ? @"host" : @"viewer", ((IMAHost *)_IMUser).imUserId, reason]));
     
     __weak TCAVBaseRoomEngine *ws = self;
@@ -391,6 +495,7 @@
         _hasStatisticFirstFrame = YES;
         
         [self onStartFirstFrameTimer];
+        DebugLog(@"onStartFirstFrameTimer [%p]", _firstFrameTimer);
     }
 }
 
@@ -432,11 +537,11 @@
 {
     if ([self isRoomRunning])
     {
-        QAVMultiRoom *room = (QAVMultiRoom *)_avContext.room;
+        QAVRoomMulti *room = (QAVRoomMulti *)_avContext.room;
         if ([room respondsToSelector:@selector(ChangeAVControlRole:delegate:)])
         {
-            QAVResult res = [room ChangeAVControlRole:role delegate:self];
-            return res;
+            [room ChangeAVControlRole:role delegate:self];
+            return QAV_OK;
         }
         else
         {
@@ -448,7 +553,20 @@
     {
         DebugLog(@"房间状态不正确，无法changeRole");
     }
-    return QAV_ERR_FAILED;
+    return QAV_ERR_FAIL;
+}
+
+- (void)OnChangeRoleDelegate:(int)result WithErrinfo:(NSString *)error_info
+{
+    if ([_delegate respondsToSelector:@selector(onAVEngine:changeRole:tipInfo:)])
+    {
+        BOOL succ = result == QAV_OK;
+        if (!succ)
+        {
+            DebugLog(@"房间状态不正确，无法changeRole");
+        }
+        [_delegate onAVEngine:self changeRole:succ tipInfo:succ ? @"修改成功" : @"修改失败"];
+    }
 }
 
 - (void)OnChangeRoleDelegate:(int)ret_code
@@ -651,27 +769,21 @@
         __weak TCAVBaseRoomEngine *ws = self;
         
         
-        QAVContextConfig *config = [[QAVContextConfig alloc] init];
+        QAVContextStartParam *config = [[QAVContextStartParam alloc] init];
         
         NSString *appid = [_IMUser imSDKAppId];
         
-        config.sdk_app_id = appid;
-        config.app_id_at3rd = appid;
+        config.sdkAppId = [appid intValue];
+        config.appidAt3rd = appid;
         config.identifier = [_IMUser imUserId];
-        config.account_type = [_IMUser imSDKAccountType];
+        config.accountType = [_IMUser imSDKAccountType];
+        config.engineCtrlType = QAVSpearEngineCtrlTypeCloud;
         
-        [_avContext startContextwithConfig:config andblock:^(QAVResult result) {
+        [_avContext startWithParam:config completion:^(int result, NSString *errorInfo) {
+            DebugLog(@"创建context result = %d errorinfo = %@", (int)result, errorInfo);
             [ws onContextStartComplete:(int)result];
         }];
-        
-        //        [_avContext startContext:^(QAVResult result) {
-        //            [ws onContextStartComplete:(int)result];
-        //        }];
     }
-    
-    
-    
-    
 }
 
 - (QAVMultiParam *)createdAVRoomParam
@@ -742,12 +854,9 @@
     {
         __weak TCAVBaseRoomEngine *ws = self;
         
-        QAVResult res =  [_avContext stopContext];
+        QAVResult res =  [_avContext stop];
         TCAVIMLog(@"StartContextr失败，StopContext = %ld", (long)res);
         [ws onContextCloseComplete:nil];
-        //        [_avContext stopContext:^(QAVResult result) {
-        //            [ws onContextCloseComplete:nil];
-        //        }];
     }
     
 }
@@ -847,20 +956,21 @@
     _hasStatisticFirstFrame = YES;
     
     [self onStartFirstFrameTimer];
+    DebugLog(@"onStartFirstFrameTimer [%p]", _firstFrameTimer);
 }
 
 - (void)onStartFirstFrameTimer
 {
     [_firstFrameTimer invalidate];
     _firstFrameTimer = nil;
-    _firstFrameTimer = [NSTimer scheduledTimerWithTimeInterval:[self maxWaitFirstFrameSec] target:self selector:@selector(onWaitFirstFrameTimeOut) userInfo:nil repeats:NO];
+    _firstFrameTimer = [NSTimer scheduledTimerWithTimeInterval:[self maxWaitFirstFrameSec] target:self selector:@selector(onWaitFirstFrameTimeOut:) userInfo:nil repeats:NO];
     [[NSRunLoop currentRunLoop] addTimer:_firstFrameTimer forMode:NSRunLoopCommonModes];
     
 }
 
-- (void)onWaitFirstFrameTimeOut
+- (void)onWaitFirstFrameTimeOut:(NSTimer *)timer
 {
-    DebugLog(@"请求首帧画面超时");
+    DebugLog(@"请求首帧画面超时 : %p", timer);
     if ([_delegate respondsToSelector:@selector(onAVEngineWaitFirstRemoteFrameTimeOut:)])
     {
         [_delegate onAVEngineWaitFirstRemoteFrameTimeOut:self];
@@ -883,6 +993,7 @@
 // 停步首帧计时
 - (void)stopFirstFrameTimer
 {
+    DebugLog(@"停止首帧画面计时");
     if (_firstFrameTimer)
     {
         [_firstFrameTimer invalidate];

@@ -86,13 +86,18 @@
 // 观众：观看直播
 - (void)enterLive:(id<AVRoomAble>)room;
 
-// 切换直播间
+// 切换直播间，1.8.3之后使用switchRoom
 // 本质上是先退出上一次的房间，enterLive到要切换的房间
 - (BOOL)switchToLive:(id<AVRoomAble>)room;
+
+// 1.8.3 新的切换房间接口
+- (BOOL)switchToRoom:(id<AVRoomAble>)room;
 
 // 主播：退出直播
 // 观众：退出直播
 - (void)exitLive;
+
+
 
 // 创建建房间成功，并且在前台
 // 主要用于进入房间后的操作audioctrl以及videoctrl的判断，在YES时，才能操作audioctrl以及videoctrl

@@ -162,5 +162,12 @@
 // completion为异步回调，注意内存泄露
 - (void)changeToNormalGuestAuthAndRole:(CommonCompletionBlock)completion;
 
+
+// 1.8.3后新的上麦流程接口
+- (void)changeToLiveGuest:(CommonCompletionBlock)completion;
+
+// 1.8.3后新的下麦流程接口
+- (void)changeToGuest:(CommonCompletionBlock)completion;
+
 @end
 

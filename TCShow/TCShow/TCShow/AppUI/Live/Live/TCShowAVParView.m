@@ -37,57 +37,47 @@
     _par.layer.masksToBounds = YES;
     [self addSubview:_par];
     
-    _push = [[UIButton alloc] init];
     
-    [_push setTitle:@"开始推流" forState:UIControlStateNormal];
-    [_push setTitle:@"关闭推流" forState:UIControlStateSelected];
+    UIImage *recHig = [UIImage imageWithColor:[kBlueColor colorWithAlphaComponent:0.5]];
+    
+    _push = [[UIButton alloc] init];
+    [_push setTitle:@"推流" forState:UIControlStateNormal];
     [_push addTarget:self action:@selector(onClickPush:) forControlEvents:UIControlEventTouchUpInside];
     _push.titleLabel.font = kAppMiddleTextFont;
     [_push setTitleColor:kBlackColor forState:UIControlStateNormal];
     [_push setTitleColor:kWhiteColor forState:UIControlStateSelected];
-    
+    [_push setBackgroundImage:nor forState:UIControlStateNormal];
+    [_push setBackgroundImage:recHig forState:UIControlStateSelected];
     [_push setBackgroundImage:nor forState:UIControlStateNormal];
     [_push setBackgroundImage:hig forState:UIControlStateSelected];
-    
     _push.layer.cornerRadius = 4;
     _push.layer.masksToBounds = YES;
-    
     [self addSubview:_push];
     
-    
-    
-    UIImage *recHig = [UIImage imageWithColor:[kBlueColor colorWithAlphaComponent:0.5]];
+
     _rec = [[UIButton alloc] init];
-    
     [_rec setTitle:@"REC" forState:UIControlStateNormal];
     [_rec addTarget:self action:@selector(onClickRec:) forControlEvents:UIControlEventTouchUpInside];
     _rec.titleLabel.font = kAppMiddleTextFont;
     [_rec setTitleColor:kBlackColor forState:UIControlStateNormal];
     [_rec setTitleColor:kWhiteColor forState:UIControlStateSelected];
-    
     [_rec setBackgroundImage:nor forState:UIControlStateNormal];
     [_rec setBackgroundImage:recHig forState:UIControlStateSelected];
-    
     _rec.layer.cornerRadius = 4;
     _rec.layer.masksToBounds = YES;
-    
     [self addSubview:_rec];
     
 #if kIsMeasureSpeed
     _speed = [[UIButton alloc] init];
-    
     [_speed setTitle:@"测速" forState:UIControlStateNormal];
     [_speed addTarget:self action:@selector(onClickSpeed:) forControlEvents:UIControlEventTouchUpInside];
     _speed.titleLabel.font = kAppMiddleTextFont;
     [_speed setTitleColor:kBlackColor forState:UIControlStateNormal];
     [_speed setTitleColor:kWhiteColor forState:UIControlStateSelected];
-    
     [_speed setBackgroundImage:nor forState:UIControlStateNormal];
     [_speed setBackgroundImage:recHig forState:UIControlStateSelected];
-    
     _speed.layer.cornerRadius = 4;
     _speed.layer.masksToBounds = YES;
-    
     [self addSubview:_speed];
 #endif
 }

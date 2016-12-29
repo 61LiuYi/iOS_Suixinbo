@@ -10,20 +10,28 @@
 
 #import "UIAlertView+BlocksKit.h"
 
+@interface TCAVBaseViewController () <UIGestureRecognizerDelegate, UINavigationBarDelegate>
+
+@end
+
 @implementation TCAVBaseViewController
 
 
 - (void)dealloc
 {
     DebugLog(@"界面[%@ : %p] 释放成功", [self class], self);
+    
+    [self releaseEngine];
+    
     _roomEngine = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-   
+    
     
     AVAudioSession *aSession = [AVAudioSession sharedInstance];
     [aSession setCategory:_audioSesstionCategory withOptions:_audioSesstionCategoryOptions error:nil];
     [aSession setMode:_audioSesstionMode error:nil];
 }
+
 
 - (instancetype)initWith:(id<AVRoomAble>)info user:(id<IMHostAble>)user
 {
@@ -39,6 +47,8 @@
         // 直播时，更换监听者
         // 直播结束时，再把监听者改成IMAPlatform
         [[TIMManager sharedInstance] setUserStatusListener:self];
+        
+        self.view.backgroundColor = kClearColor;
     }
     return self;
 }
@@ -118,9 +128,6 @@ static BOOL kIsAlertingForceOfflineOnLiving = NO;
     
     self.view.backgroundColor = kBlackColor;
     self.navigationController.navigationBarHidden = YES;
-    
-    
-    
 }
 
 
@@ -216,7 +223,32 @@ static BOOL kIsAlertingForceOfflineOnLiving = NO;
 {
     [super viewWillAppear:animated];
     self.navigationController.navigationBarHidden = YES;
-    //    [self onAppEnterForeground];
+    
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        
+        
+        self.navigationController.interactivePopGestureRecognizer.delegate = self;
+        self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+        self.navigationController.delegate = self;
+    }
+}
+
+- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    if (viewController != self)
+    {
+        
+        NSInteger index =  [navigationController.viewControllers indexOfObject:self];
+        if (index < 0 || index >= navigationController.viewControllers.count)
+        {
+            [self releaseEngine];
+        }
+    }
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    return ![_roomEngine isHostLive];
 }
 
 
@@ -324,6 +356,21 @@ static BOOL kIsAlertingForceOfflineOnLiving = NO;
     return NO;
 }
 
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    if ([_roomEngine isRoomRunning] && !_isHost)
+    {
+        _switchingToRoom = room;
+        _roomInfo = _switchingToRoom;
+        [_roomEngine switchToRoom:room];
+        return YES;
+    }
+    DebugLog(@"当前房间状态不正确，不允许切换");
+    
+    
+    return NO;
+}
+
 // 真正退出房间
 - (void)exitLive
 {
@@ -332,7 +379,7 @@ static BOOL kIsAlertingForceOfflineOnLiving = NO;
     
     [self removeNetwokChangeListner];
     
-     [[TIMManager sharedInstance] setUserStatusListener:[IMAPlatform sharedInstance]];
+    [[TIMManager sharedInstance] setUserStatusListener:[IMAPlatform sharedInstance]];
     
     _isExiting = YES;
     if (_isHost)
@@ -830,6 +877,23 @@ static BOOL kIsAlertingForceOfflineOnLiving = NO;
 - (void)tipMessage:(NSString *)msg delay:(CGFloat)seconds completion:(void (^)())completion
 {
     [[HUDHelper sharedInstance] tipMessage:msg delay:seconds completion:completion];
+}
+
+- (void)releaseEngine
+{
+    if ([_roomEngine isRoomAlive] && !_isExiting)
+    {
+        // 释放电话监听
+        [self removePhoneListener];
+        
+        [self removeNetwokChangeListner];
+        
+        [[TIMManager sharedInstance] setUserStatusListener:[IMAPlatform sharedInstance]];
+        
+        _roomEngine.delegate = nil;
+        _isExiting = YES;
+        [_roomEngine exitLive];
+    }
 }
 
 @end

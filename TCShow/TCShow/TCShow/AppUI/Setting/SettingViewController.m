@@ -27,6 +27,12 @@
     
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBarHidden = NO;
+}
+
 - (void)onExit
 {
     [[HUDHelper sharedInstance] syncLoading:@"正在退出"];

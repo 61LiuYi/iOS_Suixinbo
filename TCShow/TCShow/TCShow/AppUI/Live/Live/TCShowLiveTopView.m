@@ -100,7 +100,7 @@
 - (void)configOwnViews
 {
     NSString *url = [[_room liveHost] imUserIconUrl];
-    [_liveHost sd_setImageWithURL:[NSURL URLWithString:url] forState:UIControlStateNormal placeholderImage:kDefaultUserIcon];
+    [_liveHost sd_setImageWithURL:[NSURL URLWithString:url] forState:UIControlStateNormal placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
     
     if ([self isHost])
     {

@@ -43,12 +43,20 @@
     if ([self isHostLive])
     {
         // 主播进入直播间对应的角色名
-        return @"LiveHost";
+        // 1.8.3之前配置的角色名
+        //        return @"LiveHost";
+        //return @"TestIN";
+        // 1.8.3之后使用的角色名
+        return @"LiveMaster";
     }
     else
     {
         // 观从进入直播间对应的角色名
-        return @"NormalGuest";
+        // 1.8.3之前配置的角色名
+        //        return @"NormalGuest";
+        
+        // 1.8.3之后使用的角色名
+        return @"Guest";
     }
 }
 
@@ -88,18 +96,31 @@
     if ([self isHostLive])
     {
         // 主播进入直播间对应的角色名
-        return @"LiveHost";
+        // 1.8.3之前配置的角色名
+        //        return @"LiveHost";
+        //return @"TestIN";
+        // 1.8.3之后使用的角色名
+        return @"LiveMaster";
     }
     else
     {
         // 观从进入直播间对应的角色名
-        return @"InteractGuest";
+        // 1.8.3之前配置的角色名
+        //        return @"NormalGuest";
+        
+        // 1.8.3之后使用的角色名
+        return @"Guest";
     }
 }
 
+
 - (NSString *)interactUserRole
 {
-    return @"InteractUser";
+    // 1.8.3之前配置的角色名
+    //    return @"InteractUser";
+    //return @"TestIN";
+    // 1.8.3之后使用的角色名
+    return @"LiveGuest";
 }
 
 

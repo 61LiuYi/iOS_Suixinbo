@@ -152,7 +152,7 @@
     }
     
     id<AVMultiUserAble> iu = _userList[indexPath.row];
-    [cell.imageView sd_setImageWithURL:[NSURL URLWithString:[iu imUserIconUrl]] placeholderImage:kDefaultUserIcon];
+    [cell.imageView sd_setImageWithURL:[NSURL URLWithString:[iu imUserIconUrl]] placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
     cell.textLabel.text = [iu imUserName];
     UIButton *btn = (UIButton *)cell.accessoryView;
     btn.tag = 1000 + indexPath.row;
@@ -286,8 +286,9 @@ static BOOL kRectHostCancelInteract = NO;
         // 本地没有权限，回复拒绝
         [wm sendC2CAction:AVIMCMD_Multi_Interact_Refuse to:sender succ:nil fail:nil];
     } permissed:^{
+        
         // 有权限
-        [controller.multiManager changeToInteractAuthAndRole:^(TCAVMultiLiveRoomEngine *engine, BOOL isFinished) {
+        [controller.multiManager changeToLiveGuest:^(TCAVMultiLiveRoomEngine *engine, BOOL isFinished) {
             if (isFinished)
             {
                 // 同意
@@ -304,6 +305,25 @@ static BOOL kRectHostCancelInteract = NO;
                 [wm sendC2CAction:AVIMCMD_Multi_Interact_Refuse to:sender succ:nil fail:nil];
             }
         }];
+        // 1.8.2之前的处理
+//        // 有权限
+//        [controller.multiManager changeToInteractAuthAndRole:^(TCAVMultiLiveRoomEngine *engine, BOOL isFinished) {
+//            if (isFinished)
+//            {
+//                // 同意
+//                [wm sendC2CAction:AVIMCMD_Multi_Interact_Join to:sender succ:^{
+//                    // 进行连麦操作
+//                    [ws showSelfVideoToOther];
+//                } fail:^(int code, NSString *msg) {
+//                    [wm sendC2CAction:AVIMCMD_Multi_Interact_Refuse to:sender succ:nil fail:nil];
+//                    DebugLog(@"code = %d, msg = %@", code, msg);
+//                }];
+//            }
+//            else
+//            {
+//                [wm sendC2CAction:AVIMCMD_Multi_Interact_Refuse to:sender succ:nil fail:nil];
+//            }
+//        }];
     }];
 }
 
@@ -656,7 +676,9 @@ static BOOL kRectHostCancelInteract = NO;
         dispatch_async(dispatch_get_main_queue(), ^{
             [ws showInteractUserView:members];
         });
-    } fail:nil];
+    } fail:^(int code, NSString *msg) {
+        DebugLog(@"同步房音列表失败");
+    }];
     
 }
 
@@ -818,6 +840,7 @@ static BOOL kRectHostCancelInteract = NO;
     {
         id<AVUserAble> ah = (id<AVUserAble>)_currentUser;
         [ah setAvCtrlState:[self defaultAVHostConfig]];
+        _enableIM = YES;
         _roomEngine = [[TCShowMultiLiveRoomEngine alloc] initWith:(id<IMHostAble, AVUserAble>)_currentUser enableChat:_enableIM];
         _roomEngine.delegate = self;
         
@@ -1023,6 +1046,12 @@ static BOOL kRectHostCancelInteract = NO;
     }
 }
 
+- (void)releaseEngine
+{
+    [self stopRenderTimer];
+    [super releaseEngine];
+}
+
 - (void)startRenderTimer
 {
     if (!_renderTimer)
@@ -1057,6 +1086,17 @@ static BOOL kRectHostCancelInteract = NO;
 - (BOOL)switchToLive:(id<AVRoomAble>)room
 {
     BOOL succ = [super switchToLive:room];
+    if (succ)
+    {
+        TCShowLiveUIViewController *vc = (TCShowLiveUIViewController *)_liveView;
+        [vc switchToLiveRoom:room];
+    }
+    return succ;
+}
+
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    BOOL succ = [super switchToRoom:room];
     if (succ)
     {
         TCShowLiveUIViewController *vc = (TCShowLiveUIViewController *)_liveView;

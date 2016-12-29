@@ -22,7 +22,7 @@
 // 防止因configWith创建context不成功时，为保留现有逻辑不变，则在原有TCAVBaseRoomEngine中添加
 + (void)configWithStartedContext:(QAVContext *)context;
 
-+ (void)configWithStartedContext:(id<IMHostAble>)host completion:(CommonVoidBlock)block;
++ (void)configWithStartedContext:(id<IMHostAble>)host completion:(CommonFinishBlock)block;
 
 + (void)destroyContextCompletion:(CommonVoidBlock)block;
 

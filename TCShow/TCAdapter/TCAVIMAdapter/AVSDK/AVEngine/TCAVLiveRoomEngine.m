@@ -389,7 +389,7 @@
     else
     {
         // 重置参数
-        [self onEnableCameraComplete:_cameraId enable:enable result:QAV_ERR_FAILED needNotify:notify completion:completion];
+        [self onEnableCameraComplete:_cameraId enable:enable result:QAV_ERR_FAIL needNotify:notify completion:completion];
         _handleCameraTryCount = 0;
         _isHandlingCamera = NO;
     }
@@ -450,7 +450,7 @@
         }
         else
         {
-            [self onEnableCameraComplete:_cameraId enable:enable result:QAV_ERR_FAILED needNotify:notify completion:completion];
+            [self onEnableCameraComplete:_cameraId enable:enable result:QAV_ERR_FAIL needNotify:notify completion:completion];
         }
     }
 }
@@ -460,7 +460,7 @@
     _handleCameraTryCount++;
     if (_handleCameraTryCount >= [self enableCameraMaxTryCount])
     {
-        [self onEnableCameraComplete:_cameraId enable:enable result:QAV_ERR_FAILED needNotify:notify completion:completion];
+        [self onEnableCameraComplete:_cameraId enable:enable result:QAV_ERR_FAIL needNotify:notify completion:completion];
     }
     else
     {
@@ -543,7 +543,7 @@
                 {
                     //  互斥操作时是会走回调
                     // 重置参数
-                    [self onSwitchCameraComplete:_cameraId result:QAV_ERR_FAILED completion:completion];
+                    [self onSwitchCameraComplete:_cameraId result:QAV_ERR_FAIL completion:completion];
                 }
                 
             }
@@ -556,7 +556,7 @@
     else
     {
         // 重置参数
-        [self onSwitchCameraComplete:_cameraId result:QAV_ERR_FAILED completion:completion];
+        [self onSwitchCameraComplete:_cameraId result:QAV_ERR_FAIL completion:completion];
     }
     
 }
@@ -566,7 +566,7 @@
     _handleCameraTryCount++;
     if (_handleCameraTryCount >= [self enableCameraMaxTryCount])
     {
-        [self onSwitchCameraComplete:_cameraId result:QAV_ERR_FAILED completion:completion];
+        [self onSwitchCameraComplete:_cameraId result:QAV_ERR_FAIL completion:completion];
     }
     else
     {
@@ -667,7 +667,11 @@
         NSString *hostId = [[_roomInfo liveHost] imUserId];
         DebugLog(@"[%@][%@] 开始请求[%@]画面", [self class], [_IMUser imUserId] , hostId);
         
-        int res = [_avContext.room requestViewList:@[hostId] srcTypeList:@[@(QAVVIDEO_SRC_TYPE_CAMERA)] ret:^(QAVResult result) {
+        [_avContext.room requestViewList:@[hostId] srcTypeList:@[@(QAVVIDEO_SRC_TYPE_CAMERA)] ret:^(int result, NSString *error_info) {
+            if (result != QAV_OK)
+            {
+                DebugLog(@"QAVEndpoint requestViewList 直接返回: %d errorInfo = %@", result, error_info);
+            }
             if (QAV_OK == result)
             {
                 [ws onRequestViewCompleteResult:result];
@@ -677,7 +681,7 @@
                 _requestHostViewTryCount++;
                 if (_requestHostViewTryCount >= [ws requestHostViewMaxTryCount])
                 {
-                    [ws onRequestViewCompleteResult:QAV_ERR_FAILED];
+                    [ws onRequestViewCompleteResult:QAV_ERR_FAIL];
                 }
                 else
                 {
@@ -688,37 +692,11 @@
                 
             }
         }];
-        
-        //        int res = [QAVEndpoint requestViewList:_avContext identifierList:@[hostId] srcTypeList:@[@(QAVVIDEO_SRC_TYPE_CAMERA)] ret:^(QAVResult result) {
-        //            if (QAV_OK == result)
-        //            {
-        //                [ws onRequestViewCompleteResult:result];
-        //            }
-        //            else
-        //            {
-        //                _requestHostViewTryCount++;
-        //                if (_requestHostViewTryCount >= [ws requestHostViewMaxTryCount])
-        //                {
-        //                    [ws onRequestViewCompleteResult:QAV_ERR_FAILED];
-        //                }
-        //                else
-        //                {
-        //                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        //                        [ws requestHostView];
-        //                    });
-        //                }
-        //
-        //            }
-        //        }];
-        if (res != QAV_OK)
-        {
-            DebugLog(@"QAVEndpoint requestViewList 直接返回: %d", res);
-        }
     }
     else
     {
         TCAVIMLog(@"请求画面失败, _avContext为空");
-        [self onRequestViewCompleteResult:QAV_ERR_FAILED];
+        [self onRequestViewCompleteResult:QAV_ERR_FAIL];
     }
     
     
@@ -735,7 +713,11 @@
     BOOL succ = result == QAV_OK;
     if (succ)
     {
-        [self startFirstFrameTimer];
+        if (!_firstFrameTimer)
+        {
+            [self startFirstFrameTimer];
+            DebugLog(@"onStartFirstFrameTimer [%p]", _firstFrameTimer);
+        }
     }
     
     NSString *tip = succ ? TAVLocalizedError(ETCAVLiveRoomEngine_RequestHostView_Succ_Tip) : TAVLocalizedError(ETCAVLiveRoomEngine_RequestHostView_Fail_Tip);
@@ -1108,7 +1090,6 @@
 #endif
     param.enableSpeaker = (avcs & EAVCtrlState_Speaker) == EAVCtrlState_Speaker;
     param.enableHdAudio = (avcs & EAVCtrlState_HDAudio) == EAVCtrlState_HDAudio;
-    param.autoRotateVideo = (avcs & EAVCtrlState_AutoRotateVideo) == EAVCtrlState_AutoRotateVideo;
     return param;
 }
 

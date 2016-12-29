@@ -68,8 +68,8 @@
 - (void)configWith:(id<TCShowLiveRoomAble>)item
 {
     id<IMUserAble> host = [item liveHost];
-    [_liveCover sd_setImageWithURL:[NSURL URLWithString:[item liveCover]] placeholderImage:kDefaultCoverIcon];
-    [_liveHost sd_setImageWithURL:[NSURL URLWithString:[host imUserIconUrl]] forState:UIControlStateNormal placeholderImage:kDefaultUserIcon];
+    [_liveCover sd_setImageWithURL:[NSURL URLWithString:[item liveCover]] placeholderImage:kDefaultCoverIcon options:SDWebImageAllowInvalidSSLCertificates];
+    [_liveHost sd_setImageWithURL:[NSURL URLWithString:[host imUserIconUrl]] forState:UIControlStateNormal placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
     
     if (item)
     {

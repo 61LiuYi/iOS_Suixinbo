@@ -51,7 +51,7 @@
     NSString *liveCover = [host liveCover];
     if (liveCover)
     {
-        [_publishContent sd_setImageWithURL:[NSURL URLWithString:liveCover] placeholderImage:nil];
+        [_publishContent sd_setImageWithURL:[NSURL URLWithString:liveCover] placeholderImage:nil options:SDWebImageAllowInvalidSSLCertificates];
         _lableCover.hidden = YES;
     }
 }

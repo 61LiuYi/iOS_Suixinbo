@@ -167,6 +167,16 @@
     return succ;
 }
 
+- (BOOL)switchToRoom:(id<AVRoomAble>)room
+{
+    BOOL succ = [super switchToRoom:room];
+    if (succ)
+    {
+        _hasEnabelCamera = NO;
+    }
+    return succ;
+}
+
 // 异步请求用户user的画面
 - (void)asyncRequestViewOf:(id<AVMultiUserAble>)user
 {
@@ -228,13 +238,17 @@
         //        int res = [QAVEndpoint requestViewList:_avContext identifierList:idlist srcTypeList:typeArray ret:^(QAVResult result) {
         //            [ws onRequestViewListCallBack:result ];
         //        }];
-        int res = [_avContext.room requestViewList:idlist srcTypeList:typeArray ret:^(QAVResult result) {
-            [ws onRequestViewListCallBack:result ];
+        [_avContext.room requestViewList:idlist srcTypeList:typeArray ret:^(int result, NSString *error_info) {
+            if (result != QAV_OK)
+            {
+                DebugLog(@"QAVEndpoint requestViewList 直接返回: %d errinfo = %@", result, error_info);
+            }
+            else
+            {
+                [ws onRequestViewListCallBack:result ];
+            }
+
         }];
-        if (res != QAV_OK)
-        {
-            DebugLog(@"QAVEndpoint requestViewList 直接返回: %d", res);
-        }
     }
 }
 
@@ -246,7 +260,11 @@
         TCAVLog(([NSString stringWithFormat:@" *** clogs.viewer.upShow|%@|get stream data|SUCCEED|",[_IMUser imUserId]]));
         // 说明请求成功
         _isRequestAllViewTryCount = 0;
-        [self startFirstFrameTimer];
+        if (!_firstFrameTimer)
+        {
+            [self startFirstFrameTimer];
+            DebugLog(@"onStartFirstFrameTimer [%p]", _firstFrameTimer);
+        }
         [_requestViewDelegate onAVMLRoomEngine:self requestView:YES];
     }
     else
@@ -361,10 +379,11 @@
 // 具体与Spear配置相关，请注意设置
 - (void)changeToInteractAuthAndRole:(CommonCompletionBlock)completion
 {
-    [self changeToInteract:YES completion:completion];
+    [self changeToInteract:YES isNewAPI:NO completion:completion];
 }
 
-- (void)changeToInteract:(BOOL)isInteract completion:(CommonCompletionBlock)completion
+// after183 : 183之后用YES, 182用NO
+- (void)changeToInteract:(BOOL)isInteract isNewAPI:(BOOL)after183 completion:(CommonCompletionBlock)completion
 {
     if (_isSwitchAuthAndRole)
     {
@@ -381,8 +400,20 @@
         _isSwitchAuthAndRole = YES;
         _isSwitchToInteract = isInteract;
         self.switchAutoRoleCompletion = completion;
-        QAVMultiRoom *room = (QAVMultiRoom *)_avContext.room;
-        [room ChangeAuthoritybyBit:isInteract ? QAV_AUTH_BITS_DEFAULT : [self roomAuthBitMap] orstring:nil delegate:self];
+        QAVRoomMulti *room = (QAVRoomMulti *)_avContext.room;
+        
+        if (after183)
+        {
+            
+            NSString *role = _isSwitchToInteract ? [self interactUserRole] : [self roomControlRole];
+            [room ChangeAVControlRole:role delegate:self];
+        }
+        else
+        {
+            [room ChangeAuthoritybyBit:isInteract ? QAV_AUTH_BITS_DEFAULT : [self roomAuthBitMap] orstring:nil delegate:self];
+        }
+        
+//        room Change
     }
     else
     {
@@ -393,10 +424,10 @@
     }
 }
 
-- (void)OnChangeAuthority:(int)ret_code
+- (void)OnChangeAuthority:(int)ret_code WithErrinfo:(NSString *)error_info
 {
     BOOL succ = ret_code == QAV_OK;
-    DebugLog(@"修改用户Auth至%@%@", _isSwitchToInteract ? @"互动观众" : @"普通观众", succ ? @"成功" : @"失败");
+    DebugLog(@"修改用户Auth至%@%@ (res = %d, error = %@)", _isSwitchToInteract ? @"互动观众" : @"普通观众", succ ? @"成功" : @"失败", ret_code, error_info);
     if (succ)
     {
         // 修改权限成功
@@ -429,11 +460,11 @@
     }
 }
 
-- (void)OnChangeRoleDelegate:(int)ret_code
+- (void)OnChangeRoleDelegate:(int)ret_code WithErrinfo:(NSString *)error_info
 {
     BOOL succ = ret_code == QAV_OK;
     
-    DebugLog(@"修改用户Role至%@%@", _isSwitchToInteract ? @"互动观众" : @"普通观众", succ ? @"成功" : @"失败");
+    DebugLog(@"修改用户Role至%@(%@)%@ (res = %d, error = %@)", _isSwitchToInteract ? @"互动观众" : @"普通观众",  _isSwitchToInteract ? [self interactUserRole] : [self roomControlRole] , succ ? @"成功" : @"失败", ret_code, error_info);
     if (self.switchAutoRoleCompletion)
     {
         self.switchAutoRoleCompletion(self, succ);
@@ -453,7 +484,20 @@
 // 当前是互动观众时，下麦时，使用
 - (void)changeToNormalGuestAuthAndRole:(CommonCompletionBlock)completion
 {
-    [self changeToInteract:NO completion:completion];
+    [self changeToInteract:NO isNewAPI:NO completion:completion];
+}
+
+
+// 1.8.3后新的上麦流程接口
+- (void)changeToLiveGuest:(CommonCompletionBlock)completion
+{
+    [self changeToInteract:YES isNewAPI:YES completion:completion];
+}
+
+// 1.8.3后新的下麦流程接口
+- (void)changeToGuest:(CommonCompletionBlock)completion
+{
+    [self changeToInteract:NO isNewAPI:YES completion:completion];
 }
 
 @end

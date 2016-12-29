@@ -12,7 +12,7 @@
 
 - (NSString *)url
 {
-    return @"http://182.254.234.225/sxb/index.php?svc=live&cmd=end";
+    return @"https://sxb.qcloud.com/sxb/index.php?svc=live&cmd=end";
 }
 
 

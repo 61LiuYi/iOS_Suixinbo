@@ -99,7 +99,7 @@
 }
 
 */
-- (void)configOnLoginSucc:(TIMLoginParam *)param completion:(CommonVoidBlock)block
+- (void)configOnLoginSucc:(TIMLoginParam *)param completion:(CommonFinishBlock)block
 {
     // 配置, 获取个人名片
     [self configHost:param completion:block];

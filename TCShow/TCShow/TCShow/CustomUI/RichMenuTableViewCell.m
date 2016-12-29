@@ -142,7 +142,7 @@
         case ERichCell_Icon:
         {
             self.accessoryType = UITableViewCellAccessoryNone;
-            [_icon sd_setImageWithURL:[NSURL URLWithString:item.value] placeholderImage:kDefaultUserIcon];
+            [_icon sd_setImageWithURL:[NSURL URLWithString:item.value] placeholderImage:kDefaultUserIcon options:SDWebImageAllowInvalidSSLCertificates];
             _value.text = nil;
         }
             break;
