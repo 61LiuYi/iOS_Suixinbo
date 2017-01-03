@@ -116,7 +116,7 @@
 
 - (void)loginIMSDK
 {
-    //直接登录
+   //直接登录
     __weak IMALoginViewController *weakSelf = self;
     [[HUDHelper sharedInstance] syncLoading:@"正在登录"];
     [[IMAPlatform sharedInstance] login:_loginParam succ:^{
