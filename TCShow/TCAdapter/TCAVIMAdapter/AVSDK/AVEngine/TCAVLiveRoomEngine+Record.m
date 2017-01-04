@@ -26,7 +26,7 @@
         avRoomInfo.relationId = roomid;
         self.roomInfo = avRoomInfo;
         self.recordInfo = info;
-       
+        
     }
     return self;
 }
@@ -166,45 +166,48 @@ static NSString *const kTCAVLiveRoomEngineRecordTryItem = @"kTCAVLiveRoomEngineR
     if (recReq)
     {
         __weak TCAVLiveRoomEngine *ws = self;
-
+        
         int res = [[IMSdkInt sharedInstance] requestMultiVideoRecorderStart:recReq.roomInfo recordInfo:recReq.recordInfo okBlock: ^{
-
-            // 推流成功
-            [ws enableHostCtrlState:EAVCtrlState_Record];
-            ws.recordTryItem.isTrying = NO;
-            ws.recordTryItem.result = recReq;
-            
-            if (cb)
-            {
-                if ([ws.delegate respondsToSelector:@selector(onAVEngine:onRecord:recordRequest:)])
+            dispatch_async(dispatch_get_main_queue(), ^{
+                // 推流成功
+                [ws enableHostCtrlState:EAVCtrlState_Record];
+                ws.recordTryItem.isTrying = NO;
+                ws.recordTryItem.result = recReq;
+                
+                if (cb)
                 {
-                    [ws.delegate onAVEngine:ws onRecord:YES recordRequest:recReq];
+                    if ([ws.delegate respondsToSelector:@selector(onAVEngine:onRecord:recordRequest:)])
+                    {
+                        [ws.delegate onAVEngine:ws onRecord:YES recordRequest:recReq];
+                    }
                 }
-            }
-            
-            if (completion)
-            {
-                completion(YES, recReq);
-            }
-            TIMLog(@"开启录制成功");
+                
+                if (completion)
+                {
+                    completion(YES, recReq);
+                }
+                TIMLog(@"开启录制成功");
+            });
         } errBlock:^(int code, NSString *err) {
-            // 录制失败
-            TIMLog(@"开启录制失败 (code = %d, err = %@)", code, err);
-            ws.recordTryItem = nil;
-            [ws disableHostCtrlState:EAVCtrlState_Record];
-            
-            if (cb)
-            {
-                if ([ws.delegate respondsToSelector:@selector(onAVEngine:onRecord:recordRequest:)])
+            dispatch_async(dispatch_get_main_queue(), ^{
+                // 录制失败
+                TIMLog(@"开启录制失败 (code = %d, err = %@)", code, err);
+                ws.recordTryItem = nil;
+                [ws disableHostCtrlState:EAVCtrlState_Record];
+                
+                if (cb)
                 {
-                    [ws.delegate onAVEngine:ws onRecord:NO recordRequest:recReq];
+                    if ([ws.delegate respondsToSelector:@selector(onAVEngine:onRecord:recordRequest:)])
+                    {
+                        [ws.delegate onAVEngine:ws onRecord:NO recordRequest:recReq];
+                    }
                 }
-            }
-            
-            if (completion)
-            {
-                completion(NO, recReq);
-            }
+                
+                if (completion)
+                {
+                    completion(NO, recReq);
+                }
+            });
             
         }];
         
@@ -241,20 +244,25 @@ static NSString *const kTCAVLiveRoomEngineRecordTryItem = @"kTCAVLiveRoomEngineR
         __weak TCAVLiveRoomEngine *ws = self;
         TCAVLiveRoomRecordRequest *req = (TCAVLiveRoomRecordRequest *)self.recordTryItem.result;
         int ret = [[IMSdkInt sharedInstance] requestMultiVideoRecorderStop:req.roomInfo okBlock:^(NSArray *fileIds) {
-            req.recordFileIds = fileIds;
-            
-            if (completion)
-            {
-                completion(YES, req);
-            }
-            ws.recordTryItem = nil;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                req.recordFileIds = fileIds;
+                
+                if (completion)
+                {
+                    completion(YES, req);
+                }
+                ws.recordTryItem = nil;
+            });
         } errBlock:^(int code, NSString *err) {
-            TIMLog(@"停止录制 (code = %d, err = %@)", code, err);
-            if (completion)
-            {
-                completion(NO, req);
-            }
-            ws.recordTryItem = nil;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                TIMLog(@"停止录制 (code = %d, err = %@)", code, err);
+                if (completion)
+                {
+                    completion(NO, req);
+                }
+                ws.recordTryItem = nil;
+            });
         }];
         if(ret != 0)
         {

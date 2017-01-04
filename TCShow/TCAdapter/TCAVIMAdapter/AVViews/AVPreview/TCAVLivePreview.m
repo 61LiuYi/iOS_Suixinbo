@@ -201,6 +201,7 @@
     [glView setBoundsWithWidth:0];
     [glView setDisplayBlock:NO];
     [glView setCuttingEnable:YES];
+    glView.superBounds = _imageView.bounds;
     
     if (![_imageView isDisplay])
     {

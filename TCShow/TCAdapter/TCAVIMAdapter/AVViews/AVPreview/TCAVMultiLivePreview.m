@@ -58,6 +58,7 @@
         [glView setBoundsWithWidth:0];
         [glView setDisplayBlock:NO];
         [glView setCuttingEnable:YES];
+        glView.superBounds = _imageView.bounds;
         
         CGRect rect = [user avInteractArea];
         if (!CGRectIsEmpty(rect))

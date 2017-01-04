@@ -47,8 +47,6 @@
             [glView setNeedMirrorReverse:NO];
         }
         
-        glView.isFloat = !isFull;
-        
         float degree = 0;
         BOOL isFullScreenShow = YES;
         BOOL isCropFullScreen = NO;
@@ -74,7 +72,7 @@
                 if (!isLocal && isHost && !isFrontCamera)
                 {
                     if ( (peerFrameAngle == 2 && selfFrameAngle == 1) ||
-                         (peerFrameAngle == 0 && selfFrameAngle == 1)  )
+                        (peerFrameAngle == 0 && selfFrameAngle == 1)  )
                     {
                         degree = 180;
                     }
@@ -122,6 +120,11 @@
     }
 }
 
+
+
+
+
+
 - (float)calcRotateAngle:(int)peerFrameAngle selfAngle:(int)frameAngle
 {
     float degree = 0.0f;
@@ -131,22 +134,22 @@
     // 调整显示角度
     switch (frameAngle)
     {
-        case 0:
+        case 0: // 左
         {
             degree = -180.0f;
         }
             break;
-        case 1:
+        case 1: // 垂直
         {
             degree = -90.0f;
         }
             break;
-        case 2:
+        case 2: // 右
         {
             degree = 0.0f;
         }
             break;
-        case 3:
+        case 3: // 倒立
         {
             degree = 90.0f;
         }

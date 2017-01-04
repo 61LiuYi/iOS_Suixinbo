@@ -398,6 +398,12 @@
     return _subViews && (_subViews.count>1);
 }
 
+//- (void)setFrame:(CGRect)frame
+//{
+//    [super setFrame:frame];
+//    [[AVGLShareInstance shareInstance].context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer *)self.layer];
+//}
+
 - (void)bringSubviewToFront:(NSString *)key
 {
     @synchronized(_subViewsKey)

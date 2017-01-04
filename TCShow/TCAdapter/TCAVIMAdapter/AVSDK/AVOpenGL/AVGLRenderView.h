@@ -124,10 +124,12 @@ typedef struct
 
 @property (nonatomic,retain) AVGLImage * image;
 @property (nonatomic,assign) CGRect      frame;
+@property (nonatomic,assign) CGRect      superBounds;
 @property (nonatomic,retain) AVGLNickView   * nickView;
 @property (nonatomic,assign) id<AVGLRenderViewProtocol> delegate;
 @property (nonatomic,assign) BOOL        isFloat;
 @property (nonatomic)        ENNickViewPosition nickPosition;
+
 - (void)destroyOpenGL;
 
 - (id)initWithFrame:(CGRect)frame;

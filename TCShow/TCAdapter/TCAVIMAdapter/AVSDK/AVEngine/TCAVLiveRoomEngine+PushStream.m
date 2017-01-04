@@ -337,49 +337,53 @@ static NSString *const kTCAVLiveRoomEnginePushingMap = @"kTCAVLiveRoomEnginePush
     __weak TCAVLiveRoomEngine *ws = self;
     NSInteger state = [self getVailedPushState:type];
     int res = [[IMSdkInt sharedInstance] requestMultiVideoStreamerStart:pushRequest.roomInfo streamInfo:pushRequest.pushParam okBlock:^(AVStreamerResp *avstreamResp) {
-        pushRequest.pushResp = avstreamResp;
-        // 推流成功
-        [ws enableHostCtrlState:state];
-        
-        TCAVTryItem *item = [ws.pushingMap objectForKey:@(type)];
-        item.isTrying = NO;
-        item.result = pushRequest;
-        
-        if (cb)
-        {
-            if ([ws.delegate respondsToSelector:@selector(onAVEngine:onStartPush:pushRequest:)])
+        dispatch_async(dispatch_get_main_queue(), ^{
+            pushRequest.pushResp = avstreamResp;
+            // 推流成功
+            [ws enableHostCtrlState:state];
+            
+            TCAVTryItem *item = [ws.pushingMap objectForKey:@(type)];
+            item.isTrying = NO;
+            item.result = pushRequest;
+            
+            if (cb)
             {
-                [ws.delegate onAVEngine:ws onStartPush:YES pushRequest:pushRequest];
+                if ([ws.delegate respondsToSelector:@selector(onAVEngine:onStartPush:pushRequest:)])
+                {
+                    [ws.delegate onAVEngine:ws onStartPush:YES pushRequest:pushRequest];
+                }
             }
-        }
-        
-        if (completion)
-        {
-            completion(YES, pushRequest);
-        }
-        
-        DebugLog(@"开启%@成功, 推流地址:%@ %@", [ws pushTipOf:type], [ws pushUrlOf:pushRequest], ws.pushingMap);
+            
+            if (completion)
+            {
+                completion(YES, pushRequest);
+            }
+            
+            DebugLog(@"开启%@成功, 推流地址:%@ %@", [ws pushTipOf:type], [ws pushUrlOf:pushRequest], ws.pushingMap);
+        });
     } errBlock:^(int code, NSString *err) {
-        // 推流失败
-        // 导致推流不成功的原因：因上次推流的时候异常退出时，业务后台去要强行关闭推流，如果不，则下次再使用相同的channelInfo.channelName进行推流，则会不成功
-        DebugLog(@"开启%@失败 (code = %d, err = %@)", [ws pushTipOf:type], code, err);
-        [ws disableHostCtrlState:state];
         
-        [ws.pushingMap removeObjectForKey:@(type)];
-        
-        if (cb)
-        {
-            if ([ws.delegate respondsToSelector:@selector(onAVEngine:onStartPush:pushRequest:)])
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 推流失败
+            // 导致推流不成功的原因：因上次推流的时候异常退出时，业务后台去要强行关闭推流，如果不，则下次再使用相同的channelInfo.channelName进行推流，则会不成功
+            DebugLog(@"开启%@失败 (code = %d, err = %@)", [ws pushTipOf:type], code, err);
+            [ws disableHostCtrlState:state];
+            
+            [ws.pushingMap removeObjectForKey:@(type)];
+            
+            if (cb)
             {
-                [ws.delegate onAVEngine:ws onStartPush:NO pushRequest:pushRequest];
+                if ([ws.delegate respondsToSelector:@selector(onAVEngine:onStartPush:pushRequest:)])
+                {
+                    [ws.delegate onAVEngine:ws onStartPush:NO pushRequest:pushRequest];
+                }
             }
-        }
-        
-        if (completion)
-        {
-            completion(NO, pushRequest);
-        }
-        
+            
+            if (completion)
+            {
+                completion(NO, pushRequest);
+            }
+        });
     }];
     
     if (res != 0)
@@ -432,20 +436,24 @@ static NSString *const kTCAVLiveRoomEnginePushingMap = @"kTCAVLiveRoomEnginePush
         // 关闭推流
         __weak TCAVLiveRoomEngine *ws = self;
         [[IMSdkInt sharedInstance] requestMultiVideoStreamerStop:req.roomInfo channelIDs:@[@(req.pushResp.channelID)] okBlock:^{
-            if (completion)
-            {
-                NSString *tipFormat = TAVLocalizedError(ETCAVLiveRoomEngine_StopPushStream_Format_Succ_Tip);
-                completion(YES, [NSString stringWithFormat:tipFormat, tip]);
-            }
-            [ws.pushingMap removeObjectForKey:@(item.tryIndex)];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completion)
+                {
+                    NSString *tipFormat = TAVLocalizedError(ETCAVLiveRoomEngine_StopPushStream_Format_Succ_Tip);
+                    completion(YES, [NSString stringWithFormat:tipFormat, tip]);
+                }
+                [ws.pushingMap removeObjectForKey:@(item.tryIndex)];
+            });
         } errBlock:^(int code, NSString *err) {
-            DebugLog(@"停止%@失败 (code = %d, err = %@)", tip, code, err);
-            if (completion)
-            {
-                NSString *tipFormat = TAVLocalizedError(ETCAVLiveRoomEngine_StopPushStream_Format_Fail_Tip);
-                completion(NO, [NSString stringWithFormat:tipFormat, tip]);
-            }
-            [ws.pushingMap removeObjectForKey:@(item.tryIndex)];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                DebugLog(@"停止%@失败 (code = %d, err = %@)", tip, code, err);
+                if (completion)
+                {
+                    NSString *tipFormat = TAVLocalizedError(ETCAVLiveRoomEngine_StopPushStream_Format_Fail_Tip);
+                    completion(NO, [NSString stringWithFormat:tipFormat, tip]);
+                }
+                [ws.pushingMap removeObjectForKey:@(item.tryIndex)];
+            });
         }];
     }
 }

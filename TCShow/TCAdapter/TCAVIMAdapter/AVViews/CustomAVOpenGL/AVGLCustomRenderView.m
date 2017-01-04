@@ -37,7 +37,9 @@ float myMinf(float a, float b){
     float dstHeight = _image.height;
     
     if (dstWidth < dstHeight)
+    {
         return [self updateTexCoord2];
+    }
     //myswap(&dstHeight, &dstWidth);
     if (viewWidth ==0 || viewHeight == 0 || dstWidth == 0 || dstHeight == 0) {
         return;
@@ -164,25 +166,57 @@ float myMinf(float a, float b){
         if (viewWidth < viewHeight)
         {
             //远程画面才会裁剪,暂时用dataFormat判断是否为远程画面
-            if (_image.angle == 0 || _image.angle == -180)
+            // 横屏
+            if (_image.angle == 0 || _image.angle == -180 || _image.angle == 180)
             {
+                
+                if (viewWidth/viewHeight * dstHeight/dstWidth > 1)
+                {
+                    stride_x = 0;
+                    stride_y = ABS((1- (viewWidth/viewHeight * dstHeight/dstWidth))/2);
+                }
+                else
+                {
+                    
                 stride_x = (1- (viewWidth/viewHeight * dstHeight/dstWidth))/2;
                 stride_y = 0;
             }
             
+            }
+            
+            // 竖屏
             if (_image.angle == 270 || _image.angle == -90 || _image.angle == 90)
             {
+                
+                if (viewWidth/viewHeight * dstWidth/dstHeight > 1)
+                {
+                    stride_x = ABS((1- (viewWidth/viewHeight * dstWidth/dstHeight))/2);
+                    stride_y = 0;
+                }
+                else
+                {
                 stride_x = 0;
                 stride_y = (1- (viewWidth/viewHeight * dstWidth/dstHeight))/2;
+
+                }
             }
         }
         else//renderView 的宽大于高时，以宽为基准计算
         {
             //远程画面才会裁剪,暂时用dataFormat判断是否为远程画面
-            if (_image.angle == 0 || _image.angle == -180)
+            if (_image.angle == 0 || _image.angle == -180 || _image.angle == 180)
+            {
+                if (dstWidth/viewWidth * viewHeight/dstHeight > 1)
+                {
+                    stride_x = ABS(1 - viewWidth/dstWidth * dstHeight/viewHeight)/2;;
+                    stride_y = 0;
+                }
+                else
             {
                 stride_x = 0;
                 stride_y = (1 - dstWidth/viewWidth * viewHeight/dstHeight)/2;
+            }
+            
             }
             
             if (_image.angle == 270 || _image.angle == -90 || _image.angle == 90)
@@ -193,6 +227,8 @@ float myMinf(float a, float b){
         }
         
     }
+    
+    
     _vertexs[3].TexCoord[0] = stride_x;
     _vertexs[3].TexCoord[1] = stride_y;
     
@@ -347,25 +383,57 @@ float myMinf(float a, float b){
         if (viewWidth < viewHeight)
         {
             //远程画面才会裁剪,暂时用dataFormat判断是否为远程画面
-            if (_image.angle == 0 || _image.angle == -180)
+            // 横屏
+            if (_image.angle == 0 || _image.angle == -180 || _image.angle == 180)
             {
+                
+                if (viewWidth/viewHeight * dstHeight/dstWidth > 1)
+                {
+                    stride_x = 0;
+                    stride_y = ABS((1- (viewWidth/viewHeight * dstHeight/dstWidth))/2);
+                }
+                else
+            {
+                    
                 stride_x = (1- (viewWidth/viewHeight * dstHeight/dstWidth))/2;
                 stride_y = 0;
             }
             
+            }
+            
+            // 竖屏
             if (_image.angle == 270 || _image.angle == -90 || _image.angle == 90)
             {
+                
+                if (viewWidth/viewHeight * dstWidth/dstHeight > 1)
+                {
+                    stride_x = ABS((1- (viewWidth/viewHeight * dstWidth/dstHeight))/2);
+                    stride_y = 0;
+                }
+                else
+                {
                 stride_x = 0;
                 stride_y = (1- (viewWidth/viewHeight * dstWidth/dstHeight))/2;
+                    
+                }
             }
         }
         else//renderView 的宽大于高时，以宽为基准计算
         {
             //远程画面才会裁剪,暂时用dataFormat判断是否为远程画面
-            if (_image.angle == 0 || _image.angle == -180)
+            if (_image.angle == 0 || _image.angle == -180 || _image.angle == 180)
+            {
+                if (dstWidth/viewWidth * viewHeight/dstHeight > 1)
+                {
+                    stride_x = ABS(1 - viewWidth/dstWidth * dstHeight/viewHeight)/2;;
+                    stride_y = 0;
+                }
+                else
             {
                 stride_x = 0;
                 stride_y = (1 - dstWidth/viewWidth * viewHeight/dstHeight)/2;
+            }
+            
             }
             
             if (_image.angle == 270 || _image.angle == -90 || _image.angle == 90)
