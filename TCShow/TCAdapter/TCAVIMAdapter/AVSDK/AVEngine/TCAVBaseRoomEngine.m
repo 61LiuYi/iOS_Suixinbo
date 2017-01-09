@@ -494,7 +494,10 @@
         DebugLog(@"开始首帧画面计时");
         _hasStatisticFirstFrame = YES;
         
-        [self onStartFirstFrameTimer];
+        if (!_hasShowFirstRemoteFrame)
+        {
+            [self onStartFirstFrameTimer];
+        }
         DebugLog(@"onStartFirstFrameTimer [%p]", _firstFrameTimer);
     }
 }
